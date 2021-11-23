@@ -18,7 +18,6 @@
   },
   "homepage": "https://github.com/caleb1248/peer2peerchat#readme",
   "dependencies": {
-    "express": "^4.17.1",
-    "ws": "^8.2.3"
+    "express": "^4.17.1"
   }
 }
