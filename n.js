@@ -99,7 +99,7 @@ function handleLogin(success) {
       //********************** 
 		
       //getting local video stream 
-      navigator.webkitGetUserMedia({ video: true, audio: true }, function (myStream) { 
+      navigator.webkitGetUserMedia({ video: true, audio: true }).then(myStream => { 
          stream = myStream; 
 			
          //displaying local video stream on the page 
@@ -127,13 +127,9 @@ function handleLogin(success) {
                   type: "candidate", 
                   candidate: event.candidate 
                }); 
-            } 
-         };  
-			
-      }, function (error) { 
-         console.log(error); 
-      }); 
-		
+            }
+         };
+      });
    } 
 };
   
