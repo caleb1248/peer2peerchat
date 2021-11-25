@@ -66,7 +66,7 @@ var callBtn = document.querySelector('#callBtn');
 
 var hangUpBtn = document.querySelector('#hangUpBtn');
   
-var localVideo = document.querySelector('#localVideo'); 
+var localVideo = document.querySelector("#localvideo");
 var remoteVideo = document.querySelector('#remoteVideo'); 
 
 var yourConn; 
@@ -99,7 +99,7 @@ function handleLogin(success) {
       //********************** 
 		
       //getting local video stream 
-      navigator.webkitGetUserMedia({ video: true, audio: true }).then(myStream => { 
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(myStream => { 
          stream = myStream; 
 			
          //displaying local video stream on the page 
@@ -110,15 +110,17 @@ function handleLogin(success) {
             "iceServers": [{ "url": "stun:stun2.1.google.com:19302" }]
          }; 
 			
-         yourConn = new webkitRTCPeerConnection(configuration); 
+         yourConn = new RTCPeerConnection(configuration);
 			
          // setup stream listening 
-         yourConn.addStream(stream); 
+         myStream.getTracks().forEach(track => {
+            yourConn.addTrack(track);
+         }); 
 			
          //when a remote user adds stream to the peer connection, we display it 
-         yourConn.onaddstream = function (e) { 
-            remoteVideo.src = window.URL.createObjectURL(e.stream); 
-         };
+         yourConn.ontrack = (eve) => {
+            remoteVideo.srcObject = eve.streams[0];
+         }
 			
          // Setup ice handling 
          yourConn.onicecandidate = function (event) { 
@@ -142,15 +144,13 @@ callBtn.addEventListener("click", function () {
       connectedUser = callToUsername;
 		
       // create an offer 
-      yourConn.createOffer(function (offer) { 
+      yourConn.createOffer().then(function (offer) {
+         return yourConn.setLocalDescription(offer); 
+      }).then(offer => {
          send({ 
             type: "offer", 
-            offer: offer 
-         }); 
-			
-         yourConn.setLocalDescription(offer); 
-      }, function (error) { 
-         alert("Error when creating an offer"); 
+            offer: offer
+         });
       });
 		
    } 
@@ -162,17 +162,14 @@ function handleOffer(offer, name) {
    yourConn.setRemoteDescription(new RTCSessionDescription(offer));
 	
    //create an answer to an offer 
-   yourConn.createAnswer(function (answer) { 
-      yourConn.setLocalDescription(answer); 
-		
+   yourConn.createAnswer().then(function(answer){ 
+      yourConn.setLocalDescription(answer);
       send({ 
          type: "answer", 
          answer: answer 
       }); 
 		
-   }, function (error) { 
-      alert("Error when creating an answer"); 
-   }); 
+   });
 };
   
 //when we got an answer from a remote user
